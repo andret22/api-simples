@@ -1,11 +1,12 @@
-package io.gihub.andret22.simple_api.services;
+package io.gihub.andret22.simple_api.core.services;
 
+import io.gihub.andret22.simple_api.core.domain.Person;
+import io.gihub.andret22.simple_api.core.domain.Team;
+import io.gihub.andret22.simple_api.core.ports.input.PersonInputPort;
+import io.gihub.andret22.simple_api.core.ports.output.PersonOutputPort;
+import io.gihub.andret22.simple_api.core.ports.output.TeamOutputPort;
 import io.gihub.andret22.simple_api.dtos.person.PersonRequestDTO;
 import io.gihub.andret22.simple_api.dtos.person.PersonResponseDTO;
-import io.gihub.andret22.simple_api.models.Person;
-import io.gihub.andret22.simple_api.models.Team;
-import io.gihub.andret22.simple_api.repositories.PersonRepository;
-import io.gihub.andret22.simple_api.repositories.TeamRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,62 +14,67 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class PersonService {
+public class PersonService implements PersonInputPort {
 
-    private final PersonRepository personRepository;
-    private final TeamRepository teamRepository;
+    private final PersonOutputPort personOutputPort;
+    private final TeamOutputPort teamOutputPort;
 
-    public PersonService(PersonRepository personRepository, TeamRepository teamRepository) {
-        this.personRepository = personRepository;
-        this.teamRepository = teamRepository;
+    public PersonService(PersonOutputPort personOutputPort, TeamOutputPort teamOutputPort) {
+        this.personOutputPort = personOutputPort;
+        this.teamOutputPort = teamOutputPort;
     }
 
+    @Override
     public List<PersonResponseDTO> findAll() {
-        return personRepository.findAll().stream()
+        return personOutputPort.findAll().stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
 
+    @Override
     public PersonResponseDTO findById(UUID id) {
-        Person person = personRepository.findById(id)
+        Person person = personOutputPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Person not found"));
         return mapToResponseDTO(person);
     }
 
+    @Override
     public PersonResponseDTO create(PersonRequestDTO dto) {
         Person person = new Person();
         person.name = dto.name();
 
         if (dto.teamId() != null) {
-            Team team = teamRepository.findById(dto.teamId())
+            Team team = teamOutputPort.findById(dto.teamId())
                     .orElseThrow(() -> new RuntimeException("Team not found"));
             person.team = team;
         }
 
-        Person savedPerson = personRepository.save(person);
+        Person savedPerson = personOutputPort.save(person);
         return mapToResponseDTO(savedPerson);
     }
 
+    @Override
     public PersonResponseDTO update(UUID id, PersonRequestDTO dto) {
-        Person person = personRepository.findById(id)
+        Person person = personOutputPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Person not found"));
 
         person.name = dto.name();
 
         if (dto.teamId() != null) {
-            Team team = teamRepository.findById(dto.teamId())
+            Team team = teamOutputPort.findById(dto.teamId())
                     .orElseThrow(() -> new RuntimeException("Team not found"));
             person.team = team;
         } else {
             person.team = null;
         }
 
-        Person updatedPerson = personRepository.save(person);
+        Person updatedPerson = personOutputPort.save(person);
         return mapToResponseDTO(updatedPerson);
     }
 
+    @Override
     public void delete(UUID id) {
-        personRepository.deleteById(id);
+        personOutputPort.deleteById(id);
     }
 
     private PersonResponseDTO mapToResponseDTO(Person person) {
