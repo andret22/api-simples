@@ -9,6 +9,7 @@ import io.gihub.andret22.simple_api.dtos.team.TeamRequestDTO;
 import io.gihub.andret22.simple_api.dtos.team.TeamResponseDTO;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -41,6 +42,10 @@ public class TeamService implements TeamInputPort {
     public TeamResponseDTO create(TeamRequestDTO dto) {
         Team team = new Team();
         team.name = dto.name();
+
+        LocalDate date = LocalDate.now();
+        team.created_at = date.toString();
+        team.updated_at = date.toString();
 
         Team savedTeam = teamOutputPort.save(team);
         return mapToResponseDTO(savedTeam);

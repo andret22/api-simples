@@ -9,6 +9,7 @@ import io.gihub.andret22.simple_api.dtos.person.PersonRequestDTO;
 import io.gihub.andret22.simple_api.dtos.person.PersonResponseDTO;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -48,6 +49,10 @@ public class PersonService implements PersonInputPort {
                     .orElseThrow(() -> new RuntimeException("Team not found"));
             person.team = team;
         }
+
+        LocalDate date = LocalDate.now();
+        person.created_at = date.toString();
+        person.updated_at = date.toString();
 
         Person savedPerson = personOutputPort.save(person);
         return mapToResponseDTO(savedPerson);
